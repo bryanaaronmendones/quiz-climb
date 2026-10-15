@@ -1,5 +1,5 @@
 {
-  "name": "quiz-climb",
+  "name": "quiz-climb-api",
   "version": "1.0.0",
   "description": "Climb the tower by answering trivia questions",
   "author": "Bryan Mendones",
@@ -7,7 +7,8 @@
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
-    "db:create": "node create-db.js"
+    "db:create": "node create-db.js",
+    "check": "node --test"
   },
   "dependencies": {
     "cors": "^2.8.5",
