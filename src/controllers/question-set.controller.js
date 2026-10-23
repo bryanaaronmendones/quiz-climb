@@ -1,58 +1,46 @@
+const { matchedData } = require('express-validator');
 const questionSetService = require('../services/question-set.service');
 
-class QuestionSetController {
-  async create(req, res) {
-    try {
-      // Assuming na mayroon tayong req.user mula sa authentication middleware
-      const host_id = req.user ? req.user.user_id : req.body.host_id; 
-      const data = { ...req.body, host_id };
-      
-      const newQuestionSet = await questionSetService.createQuestionSet(data);
-      return res.status(201).json(newQuestionSet);
-    } catch (error) {
-      return res.status(400).json({ error: error.message });
-    }
-  }
-
-  async getAll(req, res) {
-    try {
-      const questionSets = await questionSetService.getAllQuestionSets(req.query);
-      return res.status(200).json(questionSets);
-    } catch (error) {
-      return res.status(500).json({ error: error.message });
-    }
-  }
-
-  async getById(req, res) {
-    try {
-      const questionSet = await questionSetService.getQuestionSetById(req.params.id);
-      return res.status(200).json(questionSet);
-    } catch (error) {
-      return res.status(404).json({ error: error.message });
-    }
-  }
-
-  async update(req, res) {
-    try {
-      const userId = req.user ? req.user.user_id : req.body.user_id; // Pansamantalang kuha sa user_id
-      const updated = await questionSetService.updateQuestionSet(req.params.id, userId, req.body);
-      return res.status(200).json(updated);
-    } catch (error) {
-      const status = error.message.includes('Unauthorized') ? 403 : 400;
-      return res.status(status).json({ error: error.message });
-    }
-  }
-
-  async delete(req, res) {
-    try {
-      const userId = req.user ? req.user.user_id : req.body.user_id;
-      await questionSetService.deleteQuestionSet(req.params.id, userId);
-      return res.status(200).json({ message: 'Question Set deleted successfully' });
-    } catch (error) {
-      const status = error.message.includes('Unauthorized') ? 403 : 400;
-      return res.status(status).json({ error: error.message });
-    }
-  }
+// What a client is allowed to see of a question set.
+function toJson(questionSet) {
+  return {
+    id: questionSet.set_id,
+    title: questionSet.title,
+    subject: questionSet.subject,
+    is_public: questionSet.is_public,
+    host_id: questionSet.host_id,
+    created_at: questionSet.created_at,
+  };
 }
 
-module.exports = new QuestionSetController();
+async function list(req, res) {
+  const questionSets = await questionSetService.list(req.user);
+  res.status(200).json(questionSets.map(toJson));
+}
+
+async function get(req, res) {
+  const { id } = matchedData(req);
+  const questionSet = await questionSetService.get(id, req.user);
+  res.status(200).json(toJson(questionSet));
+}
+
+async function create(req, res) {
+  const data = matchedData(req, { locations: ['body'] }); // only fields that passed a rule
+  const questionSet = await questionSetService.create(data, req.user);
+  res.status(201).json(toJson(questionSet));
+}
+
+async function update(req, res) {
+  const { id } = matchedData(req, { locations: ['params'] });
+  const changes = matchedData(req, { locations: ['body'] });
+  const questionSet = await questionSetService.update(id, changes, req.user);
+  res.status(200).json(toJson(questionSet));
+}
+
+async function remove(req, res) {
+  const { id } = matchedData(req);
+  await questionSetService.remove(id, req.user);
+  res.status(204).end();
+}
+
+module.exports = { list, get, create, update, remove };

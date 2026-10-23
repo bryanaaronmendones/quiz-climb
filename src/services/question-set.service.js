@@ -1,45 +1,48 @@
 const questionSetRepository = require('../repositories/question-set.repository');
+const { notFound, forbidden } = require('../errors/app-error');
 
-class QuestionSetService {
-  async createQuestionSet(data) {
-    return await questionSetRepository.create(data);
-  }
-
-  async getAllQuestionSets(filter) {
-    return await questionSetRepository.findAll(filter);
-  }
-
-  async getQuestionSetById(set_id) {
-    const questionSet = await questionSetRepository.findById(set_id);
-    if (!questionSet) {
-      throw new Error('Question Set not found');
-    }
-    return questionSet;
-  }
-
-  async updateQuestionSet(set_id, userId, data) {
-    const questionSet = await questionSetRepository.findById(set_id);
-    if (!questionSet) {
-      throw new Error('Question Set not found');
-    }
-    // Owner rule validation
-    if (questionSet.host_id !== userId) {
-      throw new Error('Unauthorized: You can only update your own question sets');
-    }
-    return await questionSetRepository.update(set_id, data);
-  }
-
-  async deleteQuestionSet(set_id, userId) {
-    const questionSet = await questionSetRepository.findById(set_id);
-    if (!questionSet) {
-      throw new Error('Question Set not found');
-    }
-    // Owner rule validation
-    if (questionSet.host_id !== userId) {
-      throw new Error('Unauthorized: You can only delete your own question sets');
-    }
-    return await questionSetRepository.delete(set_id);
-  }
+async function findOrFail(id) {
+  const questionSet = await questionSetRepository.findById(id);
+  if (!questionSet) throw notFound('QUESTION_SET_NOT_FOUND', `No question set has the id ${id}.`);
+  return questionSet;
 }
 
-module.exports = new QuestionSetService();
+function isOwner(questionSet, user) {
+  return questionSet.host_id === user.user_id || user.role === 'ADMIN';
+}
+
+// Rule: a host sees their own sets. An admin sees every set.
+function list(user) {
+  return user.role === 'ADMIN'
+    ? questionSetRepository.findAll()
+    : questionSetRepository.findAllByHost(user.user_id);
+}
+
+// Rule: a set can be read by its owner, by an admin, or by anyone if it is public.
+async function get(id, user) {
+  const questionSet = await findOrFail(id);
+  if (!isOwner(questionSet, user) && !questionSet.is_public) {
+    throw forbidden('This question set belongs to another host.');
+  }
+  return questionSet;
+}
+
+// Rule: the owner is the caller. A client can never choose host_id.
+function create(data, user) {
+  return questionSetRepository.create({ ...data, host_id: user.user_id });
+}
+
+// Rule: only the owner (or an admin) may change or delete a set.
+async function update(id, changes, user) {
+  const questionSet = await findOrFail(id);
+  if (!isOwner(questionSet, user)) throw forbidden('This question set belongs to another host.');
+  return questionSetRepository.update(questionSet, changes);
+}
+
+async function remove(id, user) {
+  const questionSet = await findOrFail(id);
+  if (!isOwner(questionSet, user)) throw forbidden('This question set belongs to another host.');
+  await questionSetRepository.remove(questionSet);
+}
+
+module.exports = { list, get, create, update, remove };

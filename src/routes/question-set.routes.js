@@ -1,13 +1,17 @@
-const express = require('express');
-const router = express.Router();
-const questionSetController = require('../controllers/question-set.controller');
-const { validateQuestionSet } = require('../validators/question-set.validator');
+const { Router } = require('express');
+const controller = require('../controllers/question-set.controller');
+const rules = require('../validators/question-set.validator');
+const validate = require('../middlewares/validate');
+const requireUser = require('../middlewares/require-user');
 
-// CRUD Routes para sa Question Sets
-router.post('/', validateQuestionSet, questionSetController.create);
-router.get('/', questionSetController.getAll);
-router.get('/:id', questionSetController.getById);
-router.put('/:id', validateQuestionSet, questionSetController.update);
-router.delete('/:id', questionSetController.delete);
+const router = Router();
+
+router.use(requireUser('HOST', 'ADMIN')); // every endpoint in this file is for hosts
+
+router.get('/', controller.list);
+router.post('/', rules.createRules, validate, controller.create);
+router.get('/:id', rules.idParam, validate, controller.get);
+router.patch('/:id', rules.updateRules, validate, controller.update);
+router.delete('/:id', rules.idParam, validate, controller.remove);
 
 module.exports = router;
