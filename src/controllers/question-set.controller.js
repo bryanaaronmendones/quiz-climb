@@ -30,11 +30,15 @@ async function create(req, res) {
   res.status(201).json(toJson(questionSet));
 }
 
-async function update(req, res) {
-  const { id } = matchedData(req, { locations: ['params'] });
-  const changes = matchedData(req, { locations: ['body'] });
-  const questionSet = await questionSetService.update(id, changes, req.user);
-  res.status(200).json(toJson(questionSet));
+async function update(req, res, next) {
+  try {
+    const { id } = matchedData(req, { locations: ['params'] });
+    const changes = matchedData(req, { locations: ['body'] });
+    const questionSet = await questionSetService.update(id, changes, req.user);
+    res.status(200).json(toJson(questionSet));
+  } catch (error) {
+    next(error); 
+  }
 }
 
 async function remove(req, res) {
