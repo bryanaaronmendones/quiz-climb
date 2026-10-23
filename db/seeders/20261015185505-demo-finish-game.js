@@ -9,19 +9,19 @@ module.exports = {
     );
     const primaryUserId = users[0].id;
 
-    // 2. Insert Question Set
+    // 2. Insert Question Set (Ginamit ang host_id at tinanggal ang description)
     await queryInterface.bulkInsert('question_sets', [{
       title: 'General Software Engineering',
-      description: 'A quiz covering basic software engineering and database concepts.',
-      user_id: primaryUserId,
+      host_id: primaryUserId, // <-- pinalitan mula user_id patungong host_id
       created_at: new Date(),
       updated_at: new Date()
     }]);
 
+    // Kunin ang kakagawang set_id (o id depende sa pk ng question_sets)
     const [questionSet] = await queryInterface.sequelize.query(
-      `SELECT id FROM "question_sets" LIMIT 1;`
+      `SELECT set_id FROM "question_sets" LIMIT 1;`
     );
-    const questionSetId = questionSet[0].id;
+    const questionSetId = questionSet[0].set_id;
 
     // 3. Insert Question
     await queryInterface.bulkInsert('questions', [{
@@ -46,7 +46,7 @@ module.exports = {
     );
     const gameSessionId = gameSession[0].id;
 
-    // 5. Insert Players with distinct user IDs (satisfying unique session/user constraint)
+    // 5. Insert Players
     await queryInterface.bulkInsert('players', [
       {
         game_session_id: gameSessionId,
@@ -63,7 +63,6 @@ module.exports = {
         updated_at: new Date()
       },
       {
-        // Awkward / incomplete case: Player who scored 0
         game_session_id: gameSessionId,
         user_id: users[2].id,
         score: 0,

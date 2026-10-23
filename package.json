@@ -9,7 +9,8 @@
     "dev": "nodemon server.js",
     "db:create": "node create-db.js",
     "db:reset": "node scripts/db-wipe.js && npx sequelize-cli db:migrate && npx sequelize-cli db:seed:all",
-    "check": "node --test"
+    "check": "node --test",
+    "db:seed": "npx sequelize-cli db:seed"
   },
   "dependencies": {
     "cors": "^2.8.5",

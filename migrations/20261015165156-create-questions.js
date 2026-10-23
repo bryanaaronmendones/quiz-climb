@@ -17,7 +17,7 @@ module.exports = {
       question_set_id: {
         type: Sequelize.INTEGER,
         allowNull: false,
-        references: { model: 'question_sets', key: 'id' },
+        references: { model: 'question_sets', key: 'set_id' },
         onDelete: 'CASCADE'
       },
       created_at: {

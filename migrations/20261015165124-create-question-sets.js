@@ -1,26 +1,29 @@
 'use strict';
 
-/** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.createTable('question_sets', {
-      id: {
-        type: Sequelize.INTEGER,
-        primaryKey: true,
+      set_id: {
+        allowNull: false,
         autoIncrement: true,
-        allowNull: false,
+        primaryKey: true,
+        type: Sequelize.INTEGER,
       },
-      user_id: {
+      host_id: {
         type: Sequelize.INTEGER,
         allowNull: false,
-        references: { model: 'users', key: 'id' },
-        onDelete: 'CASCADE'
+        references: {
+          model: 'users',
+          key: 'id',
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'CASCADE',
       },
       title: {
         type: Sequelize.STRING(150),
         allowNull: false,
       },
-      description: {
+      desciption: {
         type: Sequelize.TEXT,
         allowNull: true,
       },
@@ -34,9 +37,9 @@ module.exports = {
         defaultValue: false,
       },
       created_at: {
-        type: Sequelize.DATE,
         allowNull: false,
-        defaultValue: Sequelize.fn('now')
+        type: Sequelize.DATE,
+        defaultValue: Sequelize.fn('NOW'),
       },
       updated_at: {
         type: Sequelize.DATE,
@@ -48,5 +51,5 @@ module.exports = {
 
   async down(queryInterface, Sequelize) {
     await queryInterface.dropTable('question_sets');
-  }
+  },
 };

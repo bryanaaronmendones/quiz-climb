@@ -10,12 +10,18 @@ module.exports = {
         autoIncrement: true,
         allowNull: false
       },
+
+      school_id: {
+        type: Sequelize.STRING(50),
+        allowNull: false,
+        unique: true
+      },
       email: {
          type: Sequelize.STRING(255),
          allowNull: false,
          unique: true
       },
-         password_hash: {
+         password: {
          type: Sequelize.STRING(255),
          allowNull: false
       },
