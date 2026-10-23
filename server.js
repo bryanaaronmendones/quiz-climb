@@ -8,7 +8,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Database connection setup
+
 const sequelize = new Sequelize(
   process.env.DB_NAME,
   process.env.DB_USER,
@@ -21,7 +21,9 @@ const sequelize = new Sequelize(
   }
 );
 
-// Health Check Endpoint (Required by Lab Manual Step 4.2)
+const questionSetRoutes = require(`./src/routes/question-set.routes`);
+app.use(`/api/v1/question-sets`, questionSetRoutes);
+
 app.get('/api/v1/health', async (req, res) => {
   try {
     await sequelize.authenticate();
@@ -37,7 +39,7 @@ app.get('/', (req, res) => {
 
 const PORT = process.env.PORT || 3001;
 
-// Start server without crashing if DB is missing initially
+
 app.listen(PORT, () => {
   console.log(`API listening on http://localhost:${PORT}/api/v1`);
 });

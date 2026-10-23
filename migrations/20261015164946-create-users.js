@@ -10,6 +10,20 @@ module.exports = {
         autoIncrement: true,
         allowNull: false
       },
+      email: {
+         type: Sequelize.STRING(255),
+         allowNull: false,
+         unique: true
+      },
+         password_hash: {
+         type: Sequelize.STRING(255),
+         allowNull: false
+      },
+      role: {
+        type: Sequelize.ENUM('HOST', 'PLAYER'),
+        allowNull: false,
+        defaultValue: 'PLAYER'
+      },
       username: {
         type: Sequelize.STRING(24),
         allowNull: false,
